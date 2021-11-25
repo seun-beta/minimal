@@ -1,4 +1,5 @@
 from flask import Flask, url_for, request, render_template
+from flask.scaffold import _matching_loader_thinks_module_is_package
 from markupsafe import escape
 
 app = Flask(__name__)
@@ -37,8 +38,15 @@ with app.test_request_context():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    error = None
     if request.method == "POST":
-        return do_the_login()
+        if valid_login(request.form["username"],
+                       request.form["password"]):
+            return log_the_user_in(request.form["username"])
     else:
-        return show_the_login_form() 
+        error = "Invalid username and password"
+        return render_template("login.html", error=error)
     
+with app.test_request_context("/hello", method="POST"):
+    assert request.path == "/hello"
+    assert request.method == "POST"
